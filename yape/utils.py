@@ -40,35 +40,42 @@ def validate_data_against_schema(data, schema):
     return True
 
 
-def word_wrap(sentance, limit):
+def word_wrap(sentence, limit, hyphenate=True):
     """
     A simple word wrap utility function.
 
-    Given a sentance and a limit, return a list of strings such that no string
+    Given a sentence and a limit, return a list of strings such that no string
     is longer than the `limit`. If a single word is longer than the limit, it
     is made into two or more strings in the list, with hyphens appended at the
     end of all but the last of these strings.
     """
+    if limit < 1:
+        return ['']
+    elif limit == 1:
+        return list(sentence)
     results = []
     current = ''
-    separator = ''
-    for word in sentance.split(' '):
+    limit_offset = 1 if hyphenate else 0
+    for word in sentence.split(' '):
+        separator = ' ' if current else ''
+        # If existing phrase, a space, and a new word will fit
         if len(current) + len(word) + len(separator) <= limit:
             current += separator + word
-            separator = ' '
-        elif (len(word) <= limit):
-            if current:
-                results.append(current)
-            current = word
-        # Word is longer than the limit, hyphenate
         else:
             if current:
                 results.append(current)
-            for start in xrange(0, len(word), limit - 1):
-                # If this is not the last iteration
-                if start + limit - 1 < len(word):
-                    results.append(word[start:start + limit - 1] + '-')
-                else:
-                    current = word[start:start + limit - 1]
-    results.append(current)
+            if (len(word) <= limit):
+                current = word
+            # Word is longer than the limit, hyphenate
+            else:
+                end = limit - limit_offset
+                for start in xrange(0, len(word), end):
+                    current = word[start:start + end]
+                    # If this is not the last iteration
+                    if start + end < len(word):
+                        if hyphenate:
+                            current += '-'
+                        results.append(current)
+    if current:
+        results.append(current)
     return results

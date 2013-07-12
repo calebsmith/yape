@@ -194,24 +194,24 @@ class JSONManagerTestCase(TestCase):
 
     def test_load_filename_path(self, mock_open):
         mock_open.return_value = StringIO()
-        json_data = self.manager.load('maps', 'map_1')
+        self.manager.load(os.path.join('maps', 'map_1'))
         expected_path = os.path.join(self.path, 'maps', 'map_1')
         self.assertEqual(mock_open.call_args, call(expected_path))
 
     def test_load_no_file(self, mock_open):
         mock_open.side_effect = IOError
-        json_data = self.manager.load('maps', 'map_1')
+        json_data = self.manager.load(os.path.join('maps', 'map_1'))
         self.assertEqual(json_data, None)
 
     def test_load_empty_file(self, mock_open):
         mock_open.return_value = StringIO()
-        json_data = self.manager.load('maps', 'map_1')
+        json_data = self.manager.load(os.path.join('maps', 'map_1'))
         self.assertEqual(json_data, None)
 
     def test_load_invalid_json(self, mock_open):
         file_contents = '{"key": "value", "bad,syntax4"}'
         mock_open.return_value = StringIO(file_contents)
-        json_data = self.manager.load('maps', 'map_1')
+        json_data = self.manager.load(os.path.join('maps', 'map_1'))
         self.assertEqual(json_data, None)
 
     def test_json_with_dict(self, mock_open):
@@ -221,7 +221,7 @@ class JSONManagerTestCase(TestCase):
         }
         file_contents = json.dumps(file_data)
         mock_open.return_value = StringIO(file_contents)
-        json_data = self.manager.load('maps', 'map_1')
+        json_data = self.manager.load(os.path.join('maps', 'map_1'))
         self.assertEqual(json_data, file_data)
 
     def test_json_with_list(self, mock_open):
@@ -235,7 +235,7 @@ class JSONManagerTestCase(TestCase):
         ]
         file_contents = json.dumps(file_data)
         mock_open.return_value = StringIO(file_contents)
-        json_data = self.manager.load('maps', 'map_1')
+        json_data = self.manager.load(os.path.join('maps', 'map_1'))
         self.assertEqual(json_data, file_data)
 
 
@@ -259,7 +259,7 @@ class ManagerTestCase(TestCase):
         mock_json_get.return_value = {}
         json_data = self.manager.get_json('map', 'map_1')
         self.assertEqual(json_data, {})
-        self.assertEqual(mock_json_get.call_args, call('map', 'map_1'))
+        self.assertEqual(mock_json_get.call_args, call(os.path.join('map', 'map_1')))
 
     @patch('yape.manager.ImageManager.get')
     def test_get_image(self, mock_image_get):

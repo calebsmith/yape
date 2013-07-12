@@ -35,15 +35,15 @@ class GenericAssetManager(object):
 
 class FontManager(GenericAssetManager):
 
-    def load(self, name, font_size):
-        filename = os.path.join(self.path, name)
+    def load(self, filename, font_size):
+        filename = os.path.join(self.path, filename)
         return pygame.font.Font(filename, font_size)
 
 
 class ImageManager(GenericAssetManager):
 
-    def load(self, name):
-        filename = os.path.join(self.path, name)
+    def load(self, filename):
+        filename = os.path.join(self.path, filename)
         return pygame.image.load(filename).convert_alpha()
 
 
@@ -53,8 +53,8 @@ class SpriteManager(GenericAssetManager):
         super(SpriteManager, self).__init__(path)
         self.image_manager = ImageManager(path)
 
-    def load(self, name, x_offset, y_offset, width, height):
-        image = self.image_manager.get(name)
+    def load(self, filename, x_offset, y_offset, width, height):
+        image = self.image_manager.get(filename)
         if image is None:
             return None
         rect = image.get_rect()
@@ -62,9 +62,10 @@ class SpriteManager(GenericAssetManager):
             rect.x, rect.y = x_offset, y_offset
             rect.width, rect.height = width, height
         except ValueError:
-            err_msg = 'Spritesheet with filename {name} cannot load a sprite at {x},{y} with dimensions {width}x{height}'
+            err_msg = 'Spritesheet with filename {filename} cannot load a sprite at {x},{y} with dimensions {width}x{height}'
             print err_msg.format(
-                name=name, x=x_offset, y=y_offset, width=width, height=height
+                filename=filename, x=x_offset, y=y_offset, width=width,
+                height=height
             )
         else:
             image = image.subsurface(rect)
@@ -96,15 +97,15 @@ class JSONManager(GenericAssetManager):
             print 'Could not open JSON file {0}'.format(filename)
         return contents
 
-    def load(self, sub_path, name):
-        filename = os.path.join(self.path, sub_path, name)
-        file_contents = self._load_file_data(filename)
+    def load(self, filename):
+        full_filename = os.path.join(self.path, filename)
+        file_contents = self._load_file_data(full_filename)
         if file_contents is None:
             return None
         try:
             json_data = json.loads(file_contents)
         except ValueError as e:
-            print 'Invalid JSON in file {0}. {1}'.format(filename, e)
+            print 'Invalid JSON in file {0}. {1}'.format(full_filename, e)
             return None
         kls = JSONDict if isinstance(json_data, dict) else JSONList
         return kls(json_data)
@@ -127,7 +128,8 @@ class Manager(object):
         self._font_manager = FontManager(fonts_dir)
 
     def get_json(self, sub_path, filename):
-        return self._json_manager.get(sub_path, filename)
+        filename = os.path.join(sub_path, filename)
+        return self._json_manager.get(filename)
 
     def get_image(self, filename):
         return self._image_manager.get(filename)

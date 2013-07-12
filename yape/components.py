@@ -1,6 +1,3 @@
-import os
-import json
-
 from yape.utils import validate_data_against_schema
 
 

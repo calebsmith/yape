@@ -1,6 +1,3 @@
-from yape.utils import validate_data_against_schema
-
-
 class BaseComponent(object):
     """
     A base class that defines methods common to the Component and
@@ -106,9 +103,9 @@ class BaseComponent(object):
         # Check the data against the component's schema
         schema = getattr(self, 'schema', None)
         if schema:
-            if not validate_data_against_schema(raw_data, schema):
-                self.error = 'The given data was invalid for the schema.' + \
-                    'Data was {0} but schema is {1}'.format(raw_data, schema)
+            errors = schema.find_errors(raw_data)
+            if errors:
+                self.errors = errors
                 return False
         # Check each field of the data against its respective clean method
         for validator in self.field_validators:
@@ -158,4 +155,3 @@ class LoadableComponent(BaseComponent):
         """
         path = getattr(self, 'path', '')
         self.raw_data = self.manager.get_json(path, location)
-

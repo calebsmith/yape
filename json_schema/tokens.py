@@ -13,9 +13,9 @@ class TokenError(Exception):
     def with_token(self, token):
         self.token = token
         message = repr(token)
-        for token in token.context_chain():
-            message += " in %r" % (token,)
-        super(TokenError, self).__init__((token, message))
+        for subtoken in token:
+            message += " in %r" % (subtoken,)
+        super(TokenError, self).__init__((subtoken, message))
 
 
 class InvalidTokenValue(TokenError):
@@ -24,9 +24,10 @@ class InvalidTokenValue(TokenError):
 
 class BadInputValue(TokenError):
     def __init__(self, value, context=None):
+        context = context or ()
         self.value = value
         message = repr(context)
-        for token in context and context.context_chain() or ():
+        for token in context:
             message += " in %r" % (token,)
         super(BadInputValue, self).__init__((message, value))
 
@@ -56,11 +57,11 @@ class Token(object):
 
     By the way, if you wanted to know if *subbar* is a descendant of *bar*
     context-wise, you'd do:
-    >>> subbar.is_descendant(bar)
+    >>> subbar in bar
     True
 
-    And if we'd want to see the whole chain, just use *context_chain*:
-    >>> list(subbar.context_chain())
+    And if we'd want to see the whole chain, just use list():
+    >>> list(subbar)
     [<Token>]
     """
     __slots__ = ("context",)
@@ -77,20 +78,20 @@ class Token(object):
     def __repr__(self):
         return "<%s>" % (self.__class__.__name__,)
 
-    def is_descendant(self, other):
-        """Return whether or not *other* is a contextual descendant of *self*.
-        """
-        for value in self.context_chain():
-            if value is other:
-                return True
-        return False
-
-    def context_chain(self):
+    def __iter__(self):
         """Yield the whole context chain up to the top-level."""
         context = self.context
         while context is not None:
             yield context
             context = context.context
+
+    def __contains__(self, other):
+        """Return whether or not *other* is a contextual descendant of *self*.
+        """
+        for value in other:
+            if value is self:
+                return True
+        return False
 
 
 class ValueToken(Token):
@@ -131,9 +132,9 @@ class ValueToken(Token):
     False
 
     Now let's look at the two context chains here.
-    >>> list(d1.context_chain())
+    >>> list(d1)
     [<ValueToken 3>, <ValueToken 2>, <ValueToken 1>]
-    >>> list(d2.context_chain())
+    >>> list(d2)
     [<ValueToken 3>, <ValueToken 1>]
 
     It's pretty obvious that *d2* is missing a VTK of 1. Let's create a new VTK
@@ -143,7 +144,7 @@ class ValueToken(Token):
 
     Now the context chain should be correct, and `d1 == d2` should be True,
     even though we made new VTK objects.
-    >>> list(d2.context_chain())
+    >>> list(d2)
     [<ValueToken 3>, <ValueToken 2>, <ValueToken 1>]
     >>> d1 == d2
     True

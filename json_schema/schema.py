@@ -36,11 +36,10 @@ class Schema(object):
 
     def validate_tokens(self, tokens):
         """Validate *tokens* against the schema."""
-        combined_tokens = izip(self.tokens, tokens)
-        for (schema_token, real_token) in combined_tokens:
+        for schema_token, real_token in izip(self.tokens, tokens):
             if schema_token != real_token:
-                return (False, schema_token, real_token)
-        return (True, None, None)
+                return False, schema_token, real_token
+        return True, None, None
 
 
 class SchemaCollectionType(type):

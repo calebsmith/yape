@@ -59,9 +59,6 @@ class SchemaCollection(object):
 
     __metaclass__ = SchemaCollectionType
 
-    def __new__(self):
-        pass
-
     @classmethod
     def match_to_schema(cls, value):
         tokens = list(token_stream(value))

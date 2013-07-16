@@ -46,10 +46,13 @@ class Schema(object):
 class SchemaCollectionType(type):
 
     def __new__(self, name, bases, attrs):
-        schema_attnames = tuple(attname for attname in attrs
-            if not attname.startswith("_") \
-              and isinstance(attrs[attname], json_types))
-        schemas = dict((attname, Schema(attrs[attname])) for attname in schema_attnames)
+        schema_attnames = (
+            attr for attr in attrs
+            if not attr.startswith("_") and isinstance(attrs[attr], json_types)
+        )
+        schemas = dict(
+            (attname, Schema(attrs[attname])) for attname in schema_attnames
+        )
         attrs["schemas"] = schemas
         attrs.update(schemas)
         return super(SchemaCollectionType, self).__new__(self, name, bases, attrs)
@@ -62,7 +65,7 @@ class SchemaCollection(object):
     @classmethod
     def match_to_schema(cls, value):
         tokens = list(token_stream(value))
-        for (schema_name, schema) in cls.schemas.iteritems():
-            (valid, expected, got) = schema.validate_tokens(tokens)
+        for schema_name, schema in cls.schemas.iteritems():
+            valid, expected, got = schema.validate_tokens(tokens)
             if valid:
                 return schema_name

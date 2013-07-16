@@ -2,7 +2,7 @@
 
 from itertools import izip
 
-from json_schema.tokens import token_stream
+from yape.json_schema.tokens import token_stream
 
 
 json_types = (

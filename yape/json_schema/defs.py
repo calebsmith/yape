@@ -1,6 +1,6 @@
 """Those handy tokens, metatokens and whatnot."""
 
-from json_schema.tokens import StringToken, IntegerToken, MetaToken
+from yape.json_schema.tokens import StringToken, IntegerToken, MetaToken
 
 
 class UnsignedIntegerToken(IntegerToken):

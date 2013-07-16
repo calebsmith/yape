@@ -7,6 +7,8 @@ A metatoken (MTK): not really an atom, could be matching anything.
 See the class' individual documentation for more, and a lot of examples.
 """
 
+from yape.types import JSONDict, JSONList
+
 
 class TokenError(Exception):
     @classmethod
@@ -293,6 +295,10 @@ class MetaToken(Token):
     matching_token_types = ()
 
 
+sequence_types = (list, JSONList)
+
+map_types = (dict, JSONDict)
+
 valuetoken_type_map = {
     unicode: StringToken,
     str: StringToken,
@@ -353,16 +359,16 @@ def token_stream(value, context=None):
 
     """
     typ = type(value)
-    if typ is list:
+    if any([typ is seq_type for seq_type in sequence_types]):
         token = SequenceToken(context)
         yield token
         for subvalue in value:
             for subtoken in token_stream(subvalue, context=token):
                 yield subtoken
-    elif typ is dict:
+    elif any([typ is map_type for map_type in map_types]):
         token = MappingToken(context)
         yield token
-        for (subkey, subval) in value.iteritems():
+        for subkey, subval in sorted(value.items()):
             # Yield keys.
             key_token = MapKeyToken(token)
             yield key_token

@@ -54,7 +54,7 @@ class FSMTestCase(TestCase):
         )
 
     def test_transitions(self):
-        # Transitions are stored in the format:
+        # Transitions are stored/reported in the format:
         #     ('source', 'name'): 'destination'
         expected_transitions = {
             ('closed', 'open'): 'opened',
@@ -62,6 +62,11 @@ class FSMTestCase(TestCase):
             ('locked', 'unlock'): 'closed',
             ('opened', 'close'): 'closed'
         }
+        try:
+            self.door.open()
+            self.fail('IllegalTransitionException should be raised')
+        except FSM.IllegalTransitionException:
+            self.assertTrue(True)
         self.assertEqual(self.door.transitions, expected_transitions)
 
     def test_valid_transition_calls(self):
@@ -81,12 +86,19 @@ class FSMTestCase(TestCase):
         self.assertCanOnly(self.door, ['close'])
 
     def test_invalid_transition_calls(self):
-        with self.assertRaises(FSM.IllegalTransitionException):
+        try:
             self.door.lock()
+            self.fail('IllegalTransitionExcept should be raised')
+        except FSM.IllegalTransitionException:
+            self.assertTrue(True)
+
         self.door.close()
         self.door.lock()
-        with self.assertRaises(FSM.IllegalTransitionException):
+        try:
             self.door.open()
+            self.fail('IllegalTransitionExcept should be raised')
+        except FSM.IllegalTransitionException:
+            self.assertTrue(True)
 
     def test_add_transition(self):
         self.door.add_transition({
@@ -129,32 +141,44 @@ class FSMTestCase(TestCase):
         self.door.seal()
         self.assertTrue(self.door.is_state('sealed'))
         self.door.state = 'opened'
-        with self.assertRaises(FSM.IllegalTransitionException):
+        try:
             self.door.seal()
+            self.fail('IllegalTransitionException should be raised')
+        except FSM.IllegalTransitionException:
+            self.assertTrue(True)
 
     def test_invalid_transition_name(self):
-        with self.assertRaises(FSM.IllegalNameException):
+        try:
             # shadows a builtin
             self.door.add_transition({
                 'name': '__dict__',
                 'source': 'opened',
                 'destination': 'closed',
             })
-        with self.assertRaises(FSM.IllegalNameException):
+            self.fail('IllegalNameException should be raised')
+        except FSM.IllegalNameException:
+            self.assertTrue(True)
+        try:
             # shadows a method name on FSM
             self.door.add_transition({
                 'name': 'transitions',
                 'source': 'closed',
                 'destination': 'opened',
             })
+            self.fail('IllegalNameException should be raised')
+        except FSM.IllegalNameException:
+            self.assertTrue(True)
 
     def test_invalid_transition_override(self):
-        with self.assertRaises(FSM.IllegalNameException):
+        try:
             self.door.add_transition({
                 'name': 'close',
                 'source': 'opened',
                 'destination': 'locked',
             })
+            self.fail('IllegalNameException should be raised')
+        except FSM.IllegalNameException:
+            self.assertTrue(True)
 
     def test_callback_called(self):
         self.assertEquals(self.open_callback.call_count, 0)
@@ -226,6 +250,8 @@ class FSMTestCase(TestCase):
         )
 
     def test_illegal_callback_name(self):
-        with self.assertRaises(FSM.IllegalCallbackException):
+        try:
             self.door.add_callback('on_knock', lambda: True)
-
+            self.fail('IllegalCallbackException should be raised')
+        except FSM.IllegalCallbackException:
+            self.assertTrue(True)

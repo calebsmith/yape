@@ -1,3 +1,5 @@
+
+
 class BaseComponent(object):
     """
     A base class that defines methods common to the Component and
@@ -19,7 +21,7 @@ class BaseComponent(object):
             for attr in dir(self)
             if attr.startswith('clean_')
         ]
-        self.error = ''
+        self.errors = []
 
     def load(self, data):
         if self.is_valid(data):
@@ -28,7 +30,7 @@ class BaseComponent(object):
             if hasattr(self, 'post_process'):
                 self.post_process()
         else:
-            print self.error
+            print self.errors
 
     def process_data(self, data):
         """
@@ -55,10 +57,14 @@ class BaseComponent(object):
                     # assign them to the keys of the dictionary
                     if isinstance(asset_args, dict):
                         for key, value in asset_args.items():
-                            asset_ref = self._get_asset_ref(field_type, manager_method, asset_field_name, value)
+                            asset_ref = self._get_asset_ref(
+                                field_type, manager_method, asset_field_name, value
+                            )
                             asset_args[key] = asset_ref
                     else:
-                        asset_ref = self._get_asset_ref(field_type, manager_method, asset_field_name, asset_args)
+                        asset_ref = self._get_asset_ref(
+                            field_type, manager_method, asset_field_name, asset_args
+                        )
                         setattr(self, asset_field_name, asset_ref)
 
     def _get_asset_ref(self, field_type, manager_method, asset_field_name, asset_args):
@@ -91,9 +97,9 @@ class BaseComponent(object):
     def is_valid(self, raw_data):
         """
         Determines if the given data is valid and returns True or False
-        accordingly. If invalid, sets self.error to an error message as a
-        side-effect if not set in clean_<field> and clean methods. Validation
-        is performed in the following steps:
+        accordingly. If invalid, adds error messages to self.errors as a
+        side-effect as determined by clean_<field> and clean methods.
+        Validation is performed in the following steps:
 
         1. Assure the data conforms to the given schema if provided
         2. Assure each field is valid using each 'clean_' method
@@ -112,46 +118,46 @@ class BaseComponent(object):
             validator_name = validator.__name__
             field = validator_name[validator_name.find('_') + 1:]
             if not validator(raw_data.get(field, {})):
-                if not self.error:
-                    self.error = '{0} was not valid'.format(field)
+                if not self.errors:
+                    self.errors.append('{0} was not valid'.format(field))
                 return False
         # Check validity of all data using clean()
         if hasattr(self, 'clean'):
             if not self.clean(raw_data):
-                if not self.error:
-                    self.error = '{0} did not validate'.format(raw_data)
+                if not self.errors:
+                    self.errors.append('{0} did not validate'.format(raw_data))
                 return False
         return True
 
 
 class Component(BaseComponent):
     """
-    A game component that is instantiated with data and does not load it directly.
+    A game component that is instantiated with data and does not load it
+    directly.
     """
 
     def __init__(self, manager, data=None):
         super(Component, self).__init__(manager)
         if data is not None:
-            self.raw_data = data
             self.load(data)
 
 
 class LoadableComponent(BaseComponent):
     """
-    A game component or container of components that is instatiated with a location,
-    and loads data from that location to fill itself with components and assets.
+    A game component or container of components that is instatiated with a
+    location, and loads data from that location to fill itself with components
+    and assets.
     """
 
     def __init__(self, manager, location=None):
         super(LoadableComponent, self).__init__(manager)
         location = location or getattr(self, 'location', None)
         if location:
-            self.load_location(location)
-            self.load(self.raw_data)
+            self.load(self.load_location(location))
 
     def load_location(self, location):
         """
         Attempt to load data from the given location.
         """
         path = getattr(self, 'path', '')
-        self.raw_data = self.manager.get_json(path, location)
+        return self.manager.get_json(path, location)

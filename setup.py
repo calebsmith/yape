@@ -3,15 +3,17 @@ import os
 from setuptools import setup, find_packages
 
 
-def read_file(filename):
+def read_file(*parts):
     """Read a file into a string"""
     path = os.path.abspath(os.path.dirname(__file__))
-    filepath = os.path.join(path, filename)
+    filepath = os.path.join(path, *parts)
     try:
-        return open(filepath).read()
+        return open(filepath).read().split()
     except IOError:
-        return ''
+        return []
 
+REQUIREMENTS = read_file('requirements', 'base.txt')
+TEST_REQUIREMENTS = read_file('requirements', 'test.txt')
 
 NAME = 'yape'
 
@@ -37,7 +39,7 @@ setup(
         'Development Status :: 4 - Beta',
         'Operating System :: OS Independent',
     ],
-    install_requires=['pygame'],
-    tests_require=[],
+    install_requires=REQUIREMENTS,
+    tests_require=TEST_REQUIREMENTS,
     test_suite='runtests',
 )

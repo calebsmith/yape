@@ -15,16 +15,22 @@ class Screen(LoadableComponent):
 
     path = 'config'
     location = 'screen.json'
-    schema = [
-        'title',
-        'width',
-        'height',
-        'tile_width',
-        'tile_height',
-        'map_display_width',
-        'map_display_height',
-        'background_color',
-    ]
+
+    # json_janitor package is optional
+    try:
+        from json_janitor import Schema, AnyString, AnyInteger
+        schema = Schema({
+            'title': AnyString,
+            'width': AnyInteger,
+            'height': AnyInteger,
+            'tile_width': AnyInteger,
+            'tile_height': AnyInteger,
+            'map_display_width': AnyInteger,
+            'map_display_height': AnyInteger,
+            'background_color': AnyString,
+        })
+    except ImportError:
+        pass
 
     background = None
 

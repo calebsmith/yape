@@ -153,7 +153,9 @@ class LoadableComponent(BaseComponent):
         super(LoadableComponent, self).__init__(manager)
         location = location or getattr(self, 'location', None)
         if location:
-            self.load(self.load_location(location))
+            data = self.load_location(location)
+            self.raw_data = data
+            self.load(data)
 
     def load_location(self, location):
         """

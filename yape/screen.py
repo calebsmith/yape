@@ -16,9 +16,9 @@ class Screen(LoadableComponent):
     path = 'config'
     location = 'screen.json'
 
-    # json_schema package is optional
+    # json_janitor package is optional
     try:
-        from json_schema import Schema, AnyString, AnyInteger
+        from json_janitor import Schema, AnyString, AnyInteger
         schema = Schema({
             'title': AnyString,
             'width': AnyInteger,
@@ -29,7 +29,7 @@ class Screen(LoadableComponent):
             'map_display_height': AnyInteger,
             'background_color': AnyString,
         })
-    except:
+    except ImportError:
         pass
 
     background = None
